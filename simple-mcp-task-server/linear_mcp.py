@@ -22,10 +22,11 @@ from mcp.shared.auth import (
 
 
 # ============================================================
-# Configuration
+# Configuration — Linear MCP
 # ============================================================
 
-MCP_SERVER_URL = "https://mcp.trello.com/v1"
+# Linear's official hosted MCP server endpoint
+MCP_SERVER_URL = "https://mcp.linear.app/mcp"
 
 REDIRECT_URI = "http://localhost:3030/callback"
 
@@ -235,10 +236,10 @@ class OAuthCallbackServer:
                 """
                 <html>
                 <head>
-                    <title>Trello OAuth</title>
+                    <title>Linear OAuth</title>
                 </head>
                 <body>
-                    <h2>Authorization successful!</h2>
+                    <h2>Linear authorization successful!</h2>
                     <p>
                         You can close this browser tab and
                         return to the terminal.
@@ -326,7 +327,7 @@ callback_server = OAuthCallbackServer()
 
 
 # ============================================================
-# Open Browser
+# Open Browser — Linear Authorization
 # ============================================================
 
 async def redirect_handler(
@@ -335,7 +336,7 @@ async def redirect_handler(
 
     print()
     print("=" * 70)
-    print("OPENING TRELLO AUTHORIZATION PAGE")
+    print("OPENING LINEAR AUTHORIZATION PAGE")
     print("=" * 70)
 
     print()
@@ -356,12 +357,12 @@ async def callback_handler() -> AuthorizationCodeResult:
 
     print()
     print("=" * 70)
-    print("WAITING FOR TRELLO OAUTH CALLBACK")
+    print("WAITING FOR LINEAR OAUTH CALLBACK")
     print("=" * 70)
 
     print()
     print(
-        "Approve Trello access in your browser."
+        "Approve Linear access in your browser."
     )
 
     print(
@@ -421,7 +422,7 @@ async def callback_handler() -> AuthorizationCodeResult:
 async def main():
 
     print()
-    print("Starting Trello MCP Client...")
+    print("Starting Linear MCP Client...")
     print()
 
     # --------------------------------------------------------
@@ -442,7 +443,7 @@ async def main():
 
             client_metadata=OAuthClientMetadata(
 
-                client_name="Porosh Trello MCP Client",
+                client_name="Porosh Linear MCP Client",
 
                 redirect_uris=[
                     AnyUrl(REDIRECT_URI)
@@ -494,7 +495,7 @@ async def main():
 
                 print()
                 print("=" * 70)
-                print("CONNECTED TO TRELLO MCP SERVER")
+                print("CONNECTED TO LINEAR MCP SERVER")
                 print("=" * 70)
                 print()
 
@@ -503,7 +504,7 @@ async def main():
                 # ============================================
 
                 print("=" * 70)
-                print("AVAILABLE MCP TOOLS")
+                print("AVAILABLE LINEAR MCP TOOLS")
                 print("=" * 70)
 
                 result = await client.list_tools()
@@ -530,32 +531,43 @@ async def main():
                 )
 
                 # ============================================
-                # Call Trello MCP Tool
+                # Call Linear MCP Tool — List Issues
                 # ============================================
 
                 print()
                 print("=" * 70)
-                print("CALLING trelloSearch")
+                print("FETCHING LINEAR ISSUES")
                 print("=" * 70)
 
-                result = await client.call_tool(
-                    "trelloSearch",
-                    arguments={
-                        "action": "search_cards",
-                        "query": "ticket",
-                    },
-                )
+                # Linear MCP exposes tools like listIssues,
+                # getIssue, createIssue, updateIssue, etc.
+                # We call listIssues to show the user's work.
+                try:
+                    result = await client.call_tool(
+                        "listIssues",
+                        arguments={},
+                    )
 
-                print()
-                print("=" * 70)
-                print("RESULT")
-                print("=" * 70)
+                    print()
+                    print("=" * 70)
+                    print("RESULT")
+                    print("=" * 70)
 
-                for content in result.content:
+                    for content in result.content:
 
-                    if hasattr(content, "text"):
+                        if hasattr(content, "text"):
 
-                        print(content.text)
+                            print(content.text)
+
+                except Exception as tool_exc:
+
+                    print()
+                    print(
+                        "[Warning] Could not call listIssues. "
+                        "Inspect the available tools above and "
+                        "call the correct tool name."
+                    )
+                    print(tool_exc)
 
     finally:
 
